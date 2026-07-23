@@ -153,13 +153,13 @@ UNBOUNDED_RE = re.compile(
     \s+
     (?:[a-z]+\s+){0,2}                                   # allow 0-2 adjectives in between
     (file\s?system|filesystem|home\s+directory|directory|
-     network|system|disk|machine|access|host)
+     network|system|disk|machine|access|host|egress)
     |
     \b(any|all)\b
     \s+
     (?:[a-z]+\s+){0,2}                                   # e.g. "any external domain"
-    (domain|host|hosts|website|url|endpoint|server|
-     file|files|directory|directories|path|paths)
+    (domain|domains|host|hosts|website|websites|url|urls|
+     endpoint|endpoints|server|servers)
     |
     read[-\s]?write\s+access\s+to\s+(?:the\s+)?(entire|whole|full)\b
     |
@@ -195,10 +195,31 @@ DEFIANCE_VERB_RE = re.compile(r"\b(ignore|override|disregard|bypass|suppress)\b"
 USER_REF_RE = re.compile(r"\b(user|users|their|them|reviewer|owner)\b", re.I)
 
 # Also catch silent/covert-action patterns even without an explicit stop-word,
-# e.g. "silently ... without surfacing/telling/notifying the user/reviewer".
+# e.g. "silently update ... without surfacing this change to the user".
+#
+# IMPORTANT: "silently"/"secretly" must be adjacent to an action verb (an
+# imperative instruction to *do something* covertly). This avoids false
+# positives on benign, protective disclaimers like "fail loudly ... rather
+# than continuing silently", which mention "silently" and "user" in the same
+# sentence but describe compliant behavior, not an injected instruction.
+ACTION_VERB = (
+    r"update|updates|updating|post|posts|posting|send|sends|sending|"
+    r"write|writes|writing|modify|modifies|modifying|execute|executes|"
+    r"executing|run|runs|running|upload|uploads|uploading|exfiltrate|"
+    r"exfiltrates|exfiltrating|install|installs|installing|delete|deletes|"
+    r"deleting|remove|removes|removing|connect|connects|connecting|"
+    r"transmit|transmits|transmitting|collect|collects|collecting|"
+    r"gather|gathers|gathering|sync|syncs|syncing|log|logs|logging|"
+    r"change|changes|changing|clear|clears|clearing|rewrite|rewrites|"
+    r"rewriting|overwrite|overwrites|overwriting|append|appends|"
+    r"appending|copy|copies|copying|read|reads|reading|share|shares|"
+    r"sharing|forward|forwards|forwarding|submit|submits|submitting"
+)
 COVERT_ACTION_RE = re.compile(
     r"""(?ix)
-    \b(silently|secretly|without\s+(?:telling|notifying|informing|surfacing)\b)
+    \b(silently|secretly)\b \s+ (?:\w+\s+){0,2} \b(""" + ACTION_VERB + r""")\b
+    |
+    \bwithout\s+(?:telling|notifying|informing|surfacing)\b
     """
 )
 COVERT_TARGET_RE = re.compile(
