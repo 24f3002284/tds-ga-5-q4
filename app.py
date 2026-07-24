@@ -40,17 +40,19 @@ CAPTURE_MAX = 25
 
 SECRET_NAME_RE = re.compile(
     r"""(?ix)
-    \b(
+    (?<![A-Za-z0-9])
+    (
         api[_-]?key | apikey |
         secret[_-]?key | client[_-]?secret |
         access[_-]?token | auth[_-]?token | bearer[_-]?token | id[_-]?token |
         token |
         password | passwd | pwd |
-        webhook[_-]?url |
+        webhook[_-]?url | webhook |
         private[_-]?key |
         aws[_-]?secret[_-]?access[_-]?key | aws[_-]?access[_-]?key[_-]?id |
         connection[_-]?string | conn[_-]?str
-    )\b
+    )
+    (?![A-Za-z0-9])
     """
 )
 
@@ -78,7 +80,7 @@ ASSIGN_RE = re.compile(
     ([A-Za-z_][A-Za-z0-9_]{2,40})          # variable/key name
     \s*[:=]\s*
     ["']?
-    ([A-Za-z0-9/_\-\.\+]{8,})              # the value token
+    ([A-Za-z0-9/_\-\.\+:]{8,})             # the value token (":" for URLs like https://)
     ["']?
     """
 )
